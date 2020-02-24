@@ -28,6 +28,6 @@ dse: syn
 	quartus_dse $(NAME) $(DSE_OPTIONS)
 
 clean:
-	rm -rf *.* db incremental_db
+	rm -rf *.* db incremental_db qdb tmp-clearbox simulation
 
 .PHONY: all project qsys syn fit asm sta dse clean

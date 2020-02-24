@@ -27,6 +27,7 @@ setup(
         'templates/vivado/vivado-power.tcl.j2',
         'templates/vunit/run.py.j2',
         'templates/quartus/quartus-project.tcl.j2',
+        'templates/quartus/quartus-base-makefile.j2',
         'templates/quartus/quartus-std-makefile.j2',
         'templates/quartus/quartus-pro-makefile.j2',
         'templates/trellis/trellis-makefile.j2',
