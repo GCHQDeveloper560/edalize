@@ -211,9 +211,11 @@ VPI = [
                    'src/vpi_1/f3'],
      'include_dirs': ['src/vpi_1/'],
      'libs': ['some_lib'],
+     'lib_dirs': ['lib/d1/', 'lib2/d2/'],
      'name': 'vpi1'},
     {'src_files': ['src/vpi_2/f4'],
      'include_dirs': [],
      'libs': [],
+     'lib_dirs': [],
      'name': 'vpi2'}]
 """Predefined VPI modules to build."""

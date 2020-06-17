@@ -23,12 +23,13 @@ clean:
 """
 
     VPI_MAKE_SECTION = """
-{name}_LIBS := {libs}
-{name}_INCS := {incs}
-{name}_SRCS := {srcs}
+{name}_LIBS    := {libs}
+{name}_LIBDIRS := {libdirs}
+{name}_INCS    := {incs}
+{name}_SRCS    := {srcs}
 
 {name}.vpi: $({name}_SRCS)
-	iverilog-vpi --name={name} $({name}_LIBS) $({name}_INCS) $?
+	iverilog-vpi --name={name} $({name}_LIBS) $({name}_INCS) $({name}_LIBDIRS) $?
 
 clean_{name}:
 	$(RM) {name}.vpi
@@ -100,10 +101,12 @@ clean_{name}:
 
             for vpi_module in self.vpi_modules:
                 _incs = ['-I' + s for s in vpi_module['include_dirs']]
+                _libdirs = ['-L' + d for d in vpi_module['lib_dirs']]
                 _libs = ['-l'+l for l in vpi_module['libs']]
                 _srcs = vpi_module['src_files']
                 f.write(self.VPI_MAKE_SECTION.format(name = vpi_module['name'],
                                                      libs = ' '.join(_libs),
+                                                     libdirs = ' '.join(_libdirs),
                                                      incs = ' '.join(_incs),
                                                      srcs = ' '.join(_srcs)))
 
