@@ -4,12 +4,14 @@ import os
 
 def test_xsim(make_edalize_test):
     tool_options = {'xelab_options' : ['some', 'xelab_options'],
-                    'xsim_options'  : ['a', 'few', 'xsim_options']}
+                    'xsim_options'  : ['a', 'few', 'xsim_options'],
+                    'xsc_options'   : ['xsc', 'options', 'here']}
     paramtypes   = ['plusarg', 'vlogdefine', 'vlogparam', 'generic']
 
     tf = make_edalize_test('xsim',
                            tool_options=tool_options,
-                           param_types=paramtypes)
+                           param_types=paramtypes,
+                           use_vpi=True)
 
     tf.backend.configure()
     tf.compare_files(['config.mk', 'Makefile', tf.test_name + '.prj'])

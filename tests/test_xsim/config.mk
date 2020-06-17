@@ -8,3 +8,6 @@ GEN_PARAMS    = --generic_top vlogparam_bool=1 --generic_top vlogparam_int=42 --
 
 XELAB_OPTIONS =	some xelab_options
 XSIM_OPTIONS  = a few xsim_options
+XSC_OPTIONS   = xsc options here
+
+DPI_MODULES   = vpi1 vpi2
