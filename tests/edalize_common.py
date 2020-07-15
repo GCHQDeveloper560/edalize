@@ -202,6 +202,7 @@ FILES = [
     {"name": "config.vbl", "file_type": "veribleLintRules"},
     {"name": "verible_waiver.vbw", "file_type": "veribleLintWaiver"},
     {"name": "verible_waiver2.vbw", "file_type": "veribleLintWaiver"},
+    {'name': 'saif_file.saif', 'file_type': 'SAIF'},
 ]
 """Files of all supported file types."""
 

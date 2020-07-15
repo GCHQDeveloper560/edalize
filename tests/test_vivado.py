@@ -2,17 +2,29 @@ import pytest
 from edalize_common import make_edalize_test
 
 
-def test_vivado(make_edalize_test):
+@pytest.mark.parametrize("pnr", ["", "vivado", "none", "netlist", "power"])
+def test_vivado(make_edalize_test, pnr):
+
+    tool_options = {'part': 'xc7a35tcsg324-1'}
+    ref_dir = "."
+
+    if pnr:
+        tool_options["pnr"] = pnr
+        ref_dir += "/pnr/" + pnr
+
     tf = make_edalize_test('vivado',
-                           param_types=['generic', 'vlogdefine', 'vlogparam'],
-                           tool_options={'part': 'xc7a35tcsg324-1'})
+                            param_types=['generic', 'vlogdefine', 'vlogparam'],
+                            tool_options=tool_options,
+                            ref_dir=ref_dir)
 
     tf.backend.configure()
     tf.compare_files(['Makefile',
                       tf.test_name + '.tcl',
                       tf.test_name + '_synth.tcl',
                       tf.test_name + '_run.tcl',
-                      tf.test_name + '_pgm.tcl'])
+                      tf.test_name + '_pgm.tcl',
+                      tf.test_name + '_netlist.tcl',
+                      tf.test_name + '_power.tcl'])
 
     tf.backend.build()
     tf.compare_files(['vivado.cmd'])
@@ -50,6 +62,8 @@ def test_vivado_minimal(params, tmpdir):
         name+'.tcl',
         name+'_run.tcl',
         name+'_pgm.tcl',
+        name+'_netlist.tcl',
+        name+'_power.tcl',
     ]
 
     if synth_tool == "yosys":
