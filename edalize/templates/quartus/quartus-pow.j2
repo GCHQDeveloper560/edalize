@@ -1,0 +1,6 @@
+{% for f in src_files if f.file_type == "VCD" %}
+--input_vcd={{ f.name }}
+{% endfor %}
+{% for o in pow_options %}
+--{{o}}
+{% endfor %}

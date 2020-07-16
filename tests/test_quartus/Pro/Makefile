@@ -26,7 +26,13 @@ sta: asm
 dse: syn
 	quartus_dse $(NAME) $(DSE_OPTIONS)
 
+netlist: sta
+	quartus_eda $(NAME) --simulation --power --map_illegal_characters --tool=modelsim --format=verilog
+
+power: netlist
+	quartus_pow $(NAME) -f $(NAME).pow
+
 clean:
 	rm -rf *.* db incremental_db qdb tmp-clearbox simulation
 
-.PHONY: all project qsys syn fit asm sta dse clean
+.PHONY: all project qsys syn fit asm sta dse netlist power clean
