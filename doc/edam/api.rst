@@ -33,6 +33,8 @@ Different EDA tools handle different subsets of files and are expected to ignore
 - xdc : Xilinx Vivado constraint file
 - SAIF : Switching Activity Interchange Format, specified in IEEE 1801 standard
 - VCD : Value Change Dump, specified in the IEEE 1364 (Verilog) standard
+- SDC : Synopsys Design Constraints used by Intel Quartus and Xilinx Vivado
+- SDF : Standard Delay Format (IEEE 1497) for timing data
 
 .. _valid file types: http://www.accellera.org/XMLSchema/IPXACT/1685-2014/fileType.xsd
 
@@ -44,6 +46,10 @@ file_type       String                **Required** File type
 is_include_file Bool                  Indicates if this file should be treated as an include file (default false)
 include_path    String                When is_include_file is true, the directory containing the file will be added to the include path. include_path allows setting an explicit directory to use instead
 logical_name    String                Logical name (e.g. VHDL/SystemVerilog library) of the file
+sdf_type        String                For SDF files indicates if SDF should be copied to work directory ("copy")
+                                      for use by $sdf_annotate() or used as "min"/"typ"/"max" corner (default "copy")
+sdf_instance    String                For SDF files of type min/typ/max the instance to which the SDF file should
+                                      be applied (default "")
 =============== ===================== ===========
 
 Hook
