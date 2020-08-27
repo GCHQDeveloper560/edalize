@@ -15,22 +15,24 @@ run: $(VPI_MODULES) $(TARGET)
 clean:
 	$(RM) $(VPI_MODULES) $(TARGET)
 
-vpi1_LIBS := -lsome_lib
-vpi1_INCS := -Isrc/vpi_1/
-vpi1_SRCS := src/vpi_1/f1 src/vpi_1/f3
+vpi1_LIBS    := -lsome_lib
+vpi1_LIBDIRS := -Llib/d1/ -Llib2/d2/
+vpi1_INCS    := -Isrc/vpi_1/
+vpi1_SRCS    := src/vpi_1/f1 src/vpi_1/f3
 
 vpi1.vpi: $(vpi1_SRCS)
-	iverilog-vpi --name=vpi1 $(vpi1_LIBS) $(vpi1_INCS) $?
+	iverilog-vpi --name=vpi1 $(vpi1_LIBS) $(vpi1_INCS) $(vpi1_LIBDIRS) $?
 
 clean_vpi1:
 	$(RM) vpi1.vpi
 
-vpi2_LIBS := 
-vpi2_INCS := 
-vpi2_SRCS := src/vpi_2/f4
+vpi2_LIBS    := 
+vpi2_LIBDIRS := 
+vpi2_INCS    := 
+vpi2_SRCS    := src/vpi_2/f4
 
 vpi2.vpi: $(vpi2_SRCS)
-	iverilog-vpi --name=vpi2 $(vpi2_LIBS) $(vpi2_INCS) $?
+	iverilog-vpi --name=vpi2 $(vpi2_LIBS) $(vpi2_INCS) $(vpi2_LIBDIRS) $?
 
 clean_vpi2:
 	$(RM) vpi2.vpi

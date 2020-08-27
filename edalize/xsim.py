@@ -18,8 +18,8 @@ include config.mk
 
 all: xsim.dir/$(TARGET)/xsimk
 
-xsim.dir/$(TARGET)/xsimk:
-	xelab $(TOPLEVEL) -prj $(TARGET).prj -snapshot $(TARGET) $(XELAB_ARGS)
+xsim.dir/$(TARGET)/xsimk: $(patsubst %,xsim.dir/$(TARGET)/xsc/%.so,$(DPI_MODULES))
+	xelab $(TOPLEVEL) -prj $(TARGET).prj -snapshot $(TARGET) $(patsubst %,-sv_lib %,$(DPI_MODULES)) $(patsubst %,-sv_root %,$(dir $^)) $(XELAB_ARGS)
 
 run: xsim.dir/$(TARGET)/xsimk
 	xsim --tclbatch edalize_run.tcl $(XSIM_OPTIONS) $(TARGET) $(EXTRA_OPTIONS)
@@ -42,6 +42,34 @@ XSIM_OPTIONS  = {xsim_options}
 
 SDF_OPTIONS   = {sdf_options}
 XELAB_ARGS    = $(VLOG_OPTIONS) $(GEN_PARAMS) $(SDF_OPTIONS) $(XELAB_OPTIONS)
+XSC_OPTIONS   = {xsc_options}
+
+DPI_MODULES   = {dpi_modules}
+"""
+
+    VPI_MAKE_SECTION = """
+{name}_LIBS    := {libs}
+{name}_LIBDIRS := {libdirs}
+{name}_INCS    := {incs}
+{name}_SRCS    := {srcs}
+
+{name}_COMPILE_OPTS =
+{name}_LINK_OPTS =
+
+ifneq ($(strip $({name}_INCS)),)
+{name}_COMPILE_OPTS += --gcc_compile_options "$({name}_INCS)"
+endif
+
+ifneq ($(strip $({name}_LIBDIRS) $({name}_LIBS)),)
+{name}_LINK_OPTS += --gcc_link_options "$({name}_LIBDIRS) $({name}_LIBS)"
+endif
+
+xsim.dir/$(TARGET)/xsc/{name}.so:
+	xsc -o $@ $({name}_COMPILE_OPTS) $({name}_LINK_OPTS) $(XSC_OPTIONS) $({name}_SRCS)
+
+.PHONY: clean_{name}
+clean_{name}:
+	$(RM) xsim.dir/$(TARGET)/xsc/{name}.so
 """
 
     @classmethod
@@ -63,11 +91,6 @@ XELAB_ARGS    = $(VLOG_OPTIONS) $(GEN_PARAMS) $(SDF_OPTIONS) $(XELAB_OPTIONS)
     def configure_main(self):
         self._write_config_files()
         self._write_run_script()
-
-        #Check if any VPI modules are present and display warning
-        if len(self.vpi_modules) > 0:
-            modules = [m['name'] for m in self.vpi_modules]
-            logger.error('VPI modules not supported by Xsim: %s' % ', '.join(modules))
 
     def _write_run_script(self):
         hdl_objs = self.tool_options.get("logged_hdl_objs", [])
@@ -152,9 +175,13 @@ XELAB_ARGS    = $(VLOG_OPTIONS) $(GEN_PARAMS) $(SDF_OPTIONS) $(XELAB_OPTIONS)
                     for k, v in gen_param.items()
                 ]
             )
+
+            dpi_modules = ' '.join([m["name"] for m in self.vpi_modules])
+
             xelab_options = ' '.join(self.tool_options.get('xelab_options', []))
             xsim_options  = ' '.join(self.tool_options.get('xsim_options' , []))
             sdf_options   = ' '.join(sdf_options)
+            xsc_options = ' '.join(self.tool_options.get('xsc_options', []))
 
             f.write(self.CONFIG_MK_TEMPLATE.format(target=self.name,
                                                    toplevel=self.toplevel,
@@ -163,10 +190,26 @@ XELAB_ARGS    = $(VLOG_OPTIONS) $(GEN_PARAMS) $(SDF_OPTIONS) $(XELAB_OPTIONS)
                                                    gen_params = gen_param_args,
                                                    xelab_options = xelab_options,
                                                    xsim_options  = xsim_options,
-                                                   sdf_options = sdf_options))
+                                                   sdf_options = sdf_options,
+                                                   xsc_options = xsc_options,
+                                                   dpi_modules=dpi_modules))
 
         with open(os.path.join(self.work_root, 'Makefile'), 'w') as f:
             f.write(self.MAKEFILE_TEMPLATE)
+            for vpi_module in self.vpi_modules:
+                _incs = ["-I" + s for s in vpi_module["include_dirs"]]
+                _libdirs = ["-L" + d for d in vpi_module["lib_dirs"]]
+                _libs = ["-l" + l for l in vpi_module["libs"]]
+                _srcs = vpi_module["src_files"]
+                f.write(
+                    self.VPI_MAKE_SECTION.format(
+                        name=vpi_module["name"],
+                        libs=" ".join(_libs),
+                        libdirs=" ".join(_libdirs),
+                        incs=" ".join(_incs),
+                        srcs=" ".join(_srcs),
+                    )
+                )
 
     def run_main(self):
         args = ['run']

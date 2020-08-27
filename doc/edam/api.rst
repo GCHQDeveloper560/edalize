@@ -366,6 +366,7 @@ Field Name       Type                  Description
 ================ ===================== ===========
 include_dirs     List of String        Extra include directories
 libs             List of String        Extra libraries
+lib_dirs         List of String        Extra library directories
 name             String                Name of VPI library
 src_files        List of String        Source files for VPI library
 ================ ===================== ===========

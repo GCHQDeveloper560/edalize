@@ -3,11 +3,57 @@ include config.mk
 
 all: xsim.dir/$(TARGET)/xsimk
 
-xsim.dir/$(TARGET)/xsimk:
-	xelab $(TOPLEVEL) -prj $(TARGET).prj -snapshot $(TARGET) $(XELAB_ARGS)
+xsim.dir/$(TARGET)/xsimk: $(patsubst %,xsim.dir/$(TARGET)/xsc/%.so,$(DPI_MODULES))
+	xelab $(TOPLEVEL) -prj $(TARGET).prj -snapshot $(TARGET) $(patsubst %,-sv_lib %,$(DPI_MODULES)) $(patsubst %,-sv_root %,$(dir $^)) $(XELAB_ARGS)
 
 run: xsim.dir/$(TARGET)/xsimk
 	xsim --tclbatch edalize_run.tcl $(XSIM_OPTIONS) $(TARGET) $(EXTRA_OPTIONS)
 
 run-gui: xsim.dir/$(TARGET)/xsimk
 	xsim --gui $(XSIM_OPTIONS) $(TARGET) $(EXTRA_OPTIONS)
+
+vpi1_LIBS    := -lsome_lib
+vpi1_LIBDIRS := -Llib/d1/ -Llib2/d2/
+vpi1_INCS    := -Isrc/vpi_1/
+vpi1_SRCS    := src/vpi_1/f1 src/vpi_1/f3
+
+vpi1_COMPILE_OPTS =
+vpi1_LINK_OPTS =
+
+ifneq ($(strip $(vpi1_INCS)),)
+vpi1_COMPILE_OPTS += --gcc_compile_options "$(vpi1_INCS)"
+endif
+
+ifneq ($(strip $(vpi1_LIBDIRS) $(vpi1_LIBS)),)
+vpi1_LINK_OPTS += --gcc_link_options "$(vpi1_LIBDIRS) $(vpi1_LIBS)"
+endif
+
+xsim.dir/$(TARGET)/xsc/vpi1.so:
+	xsc -o $@ $(vpi1_COMPILE_OPTS) $(vpi1_LINK_OPTS) $(XSC_OPTIONS) $(vpi1_SRCS)
+
+.PHONY: clean_vpi1
+clean_vpi1:
+	$(RM) xsim.dir/$(TARGET)/xsc/vpi1.so
+
+vpi2_LIBS    := 
+vpi2_LIBDIRS := 
+vpi2_INCS    := 
+vpi2_SRCS    := src/vpi_2/f4
+
+vpi2_COMPILE_OPTS =
+vpi2_LINK_OPTS =
+
+ifneq ($(strip $(vpi2_INCS)),)
+vpi2_COMPILE_OPTS += --gcc_compile_options "$(vpi2_INCS)"
+endif
+
+ifneq ($(strip $(vpi2_LIBDIRS) $(vpi2_LIBS)),)
+vpi2_LINK_OPTS += --gcc_link_options "$(vpi2_LIBDIRS) $(vpi2_LIBS)"
+endif
+
+xsim.dir/$(TARGET)/xsc/vpi2.so:
+	xsc -o $@ $(vpi2_COMPILE_OPTS) $(vpi2_LINK_OPTS) $(XSC_OPTIONS) $(vpi2_SRCS)
+
+.PHONY: clean_vpi2
+clean_vpi2:
+	$(RM) xsim.dir/$(TARGET)/xsc/vpi2.so

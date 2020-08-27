@@ -12,3 +12,6 @@ XSIM_OPTIONS  = a few xsim_options
 
 SDF_OPTIONS   = --sdfmin /tb/uut_min=min.sdf --sdfmax max.sdf --sdftyp typ.sdf
 XELAB_ARGS    = $(VLOG_OPTIONS) $(GEN_PARAMS) $(SDF_OPTIONS) $(XELAB_OPTIONS)
+XSC_OPTIONS   = xsc options here
+
+DPI_MODULES   = vpi1 vpi2
