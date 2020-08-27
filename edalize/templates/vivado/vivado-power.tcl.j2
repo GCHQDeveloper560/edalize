@@ -1,0 +1,14 @@
+# Analyse power using a SAIF file from simulation
+
+open_run [get_runs impl_1]
+
+set top [ get_property top [current_fileset] ]
+
+{% for f in src_files if f.file_type == "SAIF" %}
+read_saif {{f.name}}
+{% else %}
+# No switching activity (SAIF) files found. Skipping read_saif
+{% endfor %}
+
+report_power -format text -file ${top}_report_power.txt
+

@@ -1,11 +1,9 @@
 import logging
 import os.path
-import platform
 import re
 import subprocess
 
 from edalize.edatool import Edatool
-from edalize.yosys import Yosys
 from importlib import import_module
 
 logger = logging.getLogger(__name__)
@@ -41,7 +39,7 @@ class Vivado(Edatool):
                          'desc' : 'Synthesis tool. Allowed values are vivado (default) and yosys.'},
                         {'name' : 'pnr',
                          'type' : 'String',
-                         'desc' : 'P&R tool. Allowed values are vivado (default) and none (to just run synthesis)'},
+                         'desc' : 'P&R tool. Allowed values are vivado (default), none (to just run synthesis), netlist (to generate netlists after P&R), and power (to perform power analysis)'},
                         {'name' : 'jtag_freq',
                         'type' : 'Integer',
                         'desc' : 'The frequency for jtag communication'},
@@ -163,6 +161,14 @@ class Vivado(Edatool):
         self.render_template('vivado-program.tcl.j2',
                              self.name+"_pgm.tcl")
 
+        self.render_template('vivado-netlist.tcl.j2',
+                             self.name+"_netlist.tcl")
+
+        self.render_template('vivado-power.tcl.j2',
+                             self.name+"_power.tcl",
+                             {'src_files': src_files})
+
+
     def src_file_filter(self, f):
         def _vhdl_source(f):
             s = 'read_vhdl'
@@ -186,7 +192,7 @@ class Vivado(Edatool):
         if _file_type in file_types:
             return file_types[_file_type] + ' ' + f.name
 
-        if _file_type == 'user':
+        if _file_type in ["user", "SAIF"]:
             return ''
 
         _s = "{} has unknown file type '{}', interpretation is up to Vivado"
@@ -196,13 +202,15 @@ class Vivado(Edatool):
 
     def build_main(self):
         logger.info("Building")
-        args = []
-        if 'pnr' in self.tool_options:
-            if self.tool_options['pnr'] == 'vivado':
-                pass
-            elif self.tool_options['pnr'] == 'none':
-                args.append('synth')
-        self._run_tool('make', args)
+        pnr_args = {
+            # Use the default makefile target for the "vivado" option
+            "vivado": [],
+            "none": ["synth"],
+            "netlist": ["netlist"],
+            "power": ["power"],
+        }
+        args = pnr_args.get(self.tool_options.get("pnr"), [])
+        self._run_tool("make", args)
 
     """ Program the FPGA
 
@@ -211,10 +219,7 @@ class Vivado(Edatool):
     executed in Vivado's batch mode.
     """
     def run_main(self):
-        if 'pnr' in self.tool_options:
-            if self.tool_options['pnr'] == 'vivado':
-                pass
-            elif self.tool_options['pnr'] == 'none':
-                return
+        if self.tool_options.get("pnr") == "none":
+            return
 
         self._run_tool('make', ['pgm'])

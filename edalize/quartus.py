@@ -1,7 +1,6 @@
 import logging
 import os.path
 import os
-import platform
 import subprocess
 import re
 import xml.etree.ElementTree as ET
@@ -18,6 +17,7 @@ class Quartus(Edatool):
     isPro = False
     makefile_template = {False : "quartus-std-makefile.j2",
                          True  : "quartus-pro-makefile.j2"}
+    pow_template = "quartus-pow.j2"
 
     @classmethod
     def get_doc(cls, api_ver):
@@ -38,7 +38,7 @@ class Quartus(Edatool):
                          'desc' : "Specifies the FPGA's device number in the JTAG chain. The device index specifies the device where the flash programmer looks for the Nios® II JTAG debug module. JTAG devices are numbered relative to the JTAG chain, starting at 1. Use the tool `jtagconfig` to determine the index."},
                         {'name' : 'pnr',
                          'type' : 'String',
-                         'desc' : 'P&R tool. Allowed values are quartus (default), dse (to run Design Space Explorer) and none (to just run synthesis)'}],
+                         'desc' : 'P&R tool. Allowed values are quartus (default), dse (to run Design Space Explorer), netlist (to generate netlists after Quartus P&R), power (to perform power analysis), and none (to just run synthesis)'}],
                     'lists' : [
                         {'name' : 'dse_options',
                          'type' : 'String',
@@ -46,6 +46,9 @@ class Quartus(Edatool):
                         {'name' : 'quartus_options',
                          'type' : 'String',
                          'desc' : 'Additional options for Quartus'},
+                        {'name' : 'pow_options',
+                         'type' : 'String',
+                         'desc' : 'Options for quartus_pow'}
                         ]}
     """ Initial setup of the class
 
@@ -133,6 +136,11 @@ class Quartus(Edatool):
                              escaped_name + '.tcl',
                              template_vars)
 
+        # Render power analysis (quartus_pow) settings file
+        self.render_template(self.pow_template,
+                             escaped_name + '.pow',
+                             {'src_files': src_files,
+                              'pow_options': self.tool_options.get("pow_options", [])})
 
     # Helper to extract file type
     def file_type(self, f):
@@ -210,7 +218,7 @@ class Quartus(Edatool):
         _file_type = self.file_type(f)
         if _file_type in file_mapping:
             return file_mapping[_file_type](f)
-        elif _file_type == 'user':
+        elif _file_type in ['user', 'VCD']:
             return ''
         else:
             _s = "{} has unknown file type '{}'"
@@ -222,14 +230,15 @@ class Quartus(Edatool):
 
     def build_main(self):
         logger.info("Building")
-        args = []
-        if 'pnr' in self.tool_options:
-            if self.tool_options['pnr'] == 'quartus':
-                pass
-            elif self.tool_options['pnr'] == 'dse':
-                args.append('dse')
-            elif self.tool_options['pnr'] == 'none':
-                args.append('syn')
+        pnr_args = {
+            # Use the default makefile target for the "quartus" option
+            "quartus": [],
+            "dse": ["dse"],
+            "none": ["syn"],
+            "netlist": ["netlist"],
+            "power": ["power"],
+        }
+        args = pnr_args.get(self.tool_options.get("pnr"), [])
         self._run_tool('make', args)
 
     """ Program the FPGA
@@ -241,13 +250,8 @@ class Quartus(Edatool):
         args += ['-o']
         args += ['p;' + self.name.replace('.', '_') + '.sof']
 
-        if 'pnr' in self.tool_options:
-            if self.tool_options['pnr'] == 'quartus':
-                pass
-            elif self.tool_options['pnr'] == 'dse':
-                return
-            elif self.tool_options['pnr'] == 'none':
-                return
+        if self.tool_options.get("pnr", "quartus") != "quartus":
+            return
 
         if 'board_device_index' in self.tool_options:
             args[-1] += "@" + self.tool_options['board_device_index']

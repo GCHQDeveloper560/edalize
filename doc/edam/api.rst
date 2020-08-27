@@ -23,7 +23,7 @@ File
 ----
 
 A file has a name, which is the absolute path or the relative path to the working directory. It also has a type, which describes the intended usage of the file.
-Different EDA tools handle different subsets of files and are expected to ignore files that are not applicable to them, but might issue a warning. By specifying *user* as the file type, the backends will explicitly ignore the file. The valid file types are based on the IP-XACT 2014 standard, with some additional file types added. The file types not covered by IP-XACT are listed below
+Different EDA tools handle different subsets of files and are expected to ignore files that are not applicable to them, but might issue a warning. By specifying *user* as the file type, the backends will explicitly ignore the file. The `valid file types`_ are based on the IP-XACT 2014 standard, with some additional file types added. The file types not covered by IP-XACT are listed below
 
 - QIP : Intel Quartus IP file
 - UCF : Xilinx ISE constraint file
@@ -31,7 +31,10 @@ Different EDA tools handle different subsets of files and are expected to ignore
 - vhdlSource-2008 : VHDL 2008 source
 - xci : Xilinx Vivado IP file
 - xdc : Xilinx Vivado constraint file
+- SAIF : Switching Activity Interchange Format, specified in IEEE 1801 standard
+- VCD : Value Change Dump, specified in the IEEE 1364 (Verilog) standard
 
+.. _valid file types: http://www.accellera.org/XMLSchema/IPXACT/1685-2014/fileType.xsd
 
 =============== ===================== ===========
 Field Name      Type                  Description
@@ -193,6 +196,8 @@ family              String                FPGA family e.g. *Cyclone IV E*
 device              String                Device identifier. e.g. *EP4CE55F23C8* or *5CSXFC6D6F31C8ES*
 quartus_options     List of String        Extra command-line options for Quartus
 dse_options         List of String        Command-line options for Design Space Explorer
+pnr                 String                Stage of the place and route process to run e.g. "synth", "dse", "netlist", "power"
+pow_options         List of String        Extra options for quartus_pow
 ================== ===================== ===========
 
 rivierapro
@@ -253,11 +258,15 @@ verilator_options List of String        Extra options to be passed when verilati
 vivado
 ~~~~~~
 
-================ ===================== ===========
-Field Name       Type                  Description
-================ ===================== ===========
-part             String                Device identifier. e.g. *xc7a35tcsg324-1*
-================ ===================== ===========
+=================== ===================== ===========
+Field Name          Type                  Description
+=================== ===================== ===========
+part                String                Device identifier. e.g. *xc7a35tcsg324-1*
+synth               String                Synthesis tool to be used. Options are ``vivado`` (default) or ``yosys``
+yosys_synth_options String                Options for the yosys synthesis tool
+vivado-settings     String                Optional path to the Vivado settings script if not already sourced in the current shell, e.g. /opt/Xilinx/Vivado/2020.1/settings64.sh
+pnr                 String                Stage of the place and route process to run e.g. ``vivado`` (default), ``none``, ``netlist``, ``power``
+=================== ===================== ===========
 
 vunit
 ~~~~~

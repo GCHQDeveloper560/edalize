@@ -23,3 +23,11 @@ pgm: $(NAME)_pgm.tcl $(BITSTREAM)
 	export HW_TARGET=$(HW_TARGET); \
 	export JTAG_FREQ=$(JTAG_FREQ); \
 	vivado -quiet -nolog -notrace -mode batch -source $< -tclargs $(PART) $(BITSTREAM)
+
+netlist: $(NAME)_netlist.tcl $(NAME).xpr $(BITSTREAM)
+	vivado -notrace -mode batch -source $(filter-out $(BITSTREAM), $^)
+
+power: $(NAME)_power.tcl $(NAME).xpr $(BITSTREAM)
+	vivado -notrace -mode batch -source $(filter-out $(BITSTREAM), $^)
+
+.PHONY: pgm synth all build-gui netlist power
